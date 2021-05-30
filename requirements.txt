@@ -3,3 +3,5 @@ numpy
 streamlit
 yfinance
 schedule
+xlrd
+openpyxl
