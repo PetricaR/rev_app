@@ -25,8 +25,7 @@ st.header('REVOLUT STOCKS LIST')
 # Market title web page:
 @st.cache(allow_output_mutation=True)
 def stock_list():
-    stock_list = pd.read_excel(r'01_STOCK_LIST\stocks_list.xlsx',
-                                   sheet_name='stocks_list')        
+    stock_list = pd.read_excel('stocks_list.xlsx', sheet_name='stocks_list')        
     return stock_list
 
 # View stocks list
