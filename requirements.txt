@@ -1,7 +1,5 @@
 pandas
 numpy
 streamlit
-sqlalchemy
-sqlite3
 yfinance
 schedule

@@ -16,15 +16,7 @@ import streamlit as st
 from streamlit import dataframe, stop
 from datetime import datetime, date
 import math
-# from bokeh.plotting import figure
-import sqlalchemy
-import sqlite3
 import yfinance as yf
-import schedule
-from schedule import every, repeat, run_pending
-import time
-
-
 # GET STOCK LIST
 ##################################################################################################################################
 st.sidebar.header('VIEW STOCKS')
