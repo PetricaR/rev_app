@@ -17,6 +17,12 @@ from streamlit import dataframe, stop
 from datetime import datetime, date
 import math
 import yfinance as yf
+import time
+import pandas_ta as ta
+
+
+
+
 # GET STOCK LIST
 ##################################################################################################################################
 st.sidebar.header('VIEW STOCKS')
@@ -38,6 +44,27 @@ stocks_industry = stocks['Industry'].unique()
 ##################################################################################################################################
 # # Selection stocks by company name
 ##################################################################################################################################
+# checkbox_company_name = st.sidebar.checkbox('Stocks by company name:', key='checkbox_company_name')
+
+
+# def selection_stocks_by_names():
+#     try:
+#         st.text('Stocks selected by name')
+#         if checkbox_company_name:
+#             stocks_filter_by_name = st.sidebar.multiselect('Name:', stocks_company_name)
+#             if stocks_filter_by_name:
+#                 stocks_selected_by_stocks_names = stocks[(stocks['Company name'].isin(stocks_filter_by_name))]
+#             else:
+#                 st.warning('Please select a name')
+#         else:
+#             st.warning('Please select a name')
+#     except UnboundLocalError:
+#         st.warning('Please select a name')
+        
+#     return stocks_selected_by_stocks_names
+
+# final_stocks_selection = selection_stocks_by_names()
+##################################################################################################################################
 def selection_stocks_by_names():
     try:
         st.text('Stocks selected by name')
@@ -54,47 +81,6 @@ if checkbox_company_name:
     if stocks_filtered_by_name:
         stocks_selected_by_stocks_names = selection_stocks_by_names()
           
-          
-
-##################################################################################################################################
-# # Selection stocks by company sector
-##################################################################################################################################
-def selection_stocks_by_sector():
-    try:
-        st.text('Stocks selected by sector')
-        stocks_selected_by_stocks_sector = stocks[(stocks['Sector'].isin(stocks_filtered_by_sector))]
-        stocks_selected_by_stocks_sector
-    except:
-        st.warning('Please select a sector')
-    return stocks_selected_by_stocks_sector
-
-##################################################################################################################################
-checkbox_company_sector = st.sidebar.checkbox('Stocks by company sector:', key='checkbox_company_sector')
-if checkbox_company_sector:
-    stocks_filtered_by_sector = st.sidebar.multiselect('Sector:', stocks_sector)
-    if stocks_filtered_by_sector:
-        stocks_selected_by_stocks_sector = selection_stocks_by_sector()
-          
-          
-          
-##################################################################################################################################
-# # Selection stocks by company industry
-##################################################################################################################################
-def selection_stocks_by_industry():
-    try:
-        st.text('Stocks selected by industry')
-        stocks_selected_by_stocks_industry = stocks[(stocks['Industry'].isin(stocks_filtered_by_industry))]
-        stocks_selected_by_stocks_industry
-    except:
-        st.warning('Please select an industry')
-    return stocks_selected_by_stocks_industry
-
-##################################################################################################################################
-checkbox_company_industry = st.sidebar.checkbox('Stocks by company industry:', key='checkbox_company_industry')
-if checkbox_company_industry:
-    stocks_filtered_by_industry = st.sidebar.multiselect('Industry:', stocks_industry)
-    if stocks_filtered_by_industry:
-        stocks_selected_by_stocks_industry = selection_stocks_by_industry()
 
 
 # # Download stock data
@@ -113,7 +99,7 @@ def get_data(tickers,  *args, **kwargs):
                 # fetch data by interval (including intraday if period < 60 days)
                 # valid intervals: 1m,2m,5m,15m,30m,60m,90m,1h,1d,5d,1wk,1mo,3mo
                 # (optional, default is '1d')
-                interval = "1m",
+                interval = "15m",
 
                 # group by ticker (to access via data['SPY'])
                 # (optional, default is 'column')
@@ -136,15 +122,7 @@ def get_data(tickers,  *args, **kwargs):
                 proxy = None
             )
         
-        delta = data['Close'].diff()
-        up = delta.clip(lower=0)
-        down = -1*delta.clip(upper=0)
-        ema_up = up.ewm(com=13, adjust=False).mean()
-        ema_down = down.ewm(com=13, adjust=False).mean()
-        rs = ema_up/ema_down
-        data['RSI'] = 100 - (100/(1 + rs))  
-        data
-               
+                     
     except (KeyError, ValueError, UnboundLocalError): 
         st.warning('No stock has been selected')  
     
@@ -152,18 +130,38 @@ def get_data(tickers,  *args, **kwargs):
     return data
 
 
+
+
 def get_live_data():
     company_names = stocks_selected_by_stocks_names['Company name'].values
     company_symbols = stocks_selected_by_stocks_names['Symbol'].values
     for name, symbol in zip(company_names, company_symbols):
-        st.write(name, " | ", symbol)
-        stocks_final = get_data(symbol)
-    
+        try:
+            stocks_final = get_data(symbol)
+            timestamp = get_data(symbol).index[-1]
+            stocks_final['RSI'] = stocks_final.ta.rsi()
+            # stocks_final
+            
+            if stocks_final['RSI'][-1] < 30:
+                stocks_final['recommndation'] = "buy"
+            elif stocks_final['RSI'][-1]  > 70:
+                stocks_final['recommndation'] = "sell"
+            else:
+                stocks_final['recommndation'] = "neutral"
+            
+            st.write("|", timestamp, "|", name, "-", symbol,  "|", "Price = ", stocks_final['close'][-1],
+                     "|", "RSI = ", stocks_final['RSI'][-1], "||", stocks_final['recommndation'][-1])
+        
+        except:
+            st.write(f'error with stock {name, symbol}')
+            continue
+        
     return stocks_final
 
-import time
+
+
 t3 = 0
-period3 = 60.0 #seconds do function3() every minute
+period3 = 60 #seconds do function3() every minute
 sleep_seconds = 1   # or whatever makes sense
 
 with st.form(key='final_stocks'):
@@ -180,56 +178,5 @@ with st.form(key='final_stocks'):
 
 
 
-
-
-
-
-
-
-
-
-
-
-##################################################################################################################################
-# STOCK CONCATENATION
-##################################################################################################################################
-# if checkbox_company_name & checkbox_company_sector & checkbox_company_industry:
-#     st.subheader('Select final stocks')
-#     if stocks_filtered_by_name & stocks_filtered_by_industry & stocks_filtered_by_sector:
-#         stocks_final = pd.concat([stocks_selected_by_stocks_names, stocks_selected_by_stocks_sector, stocks_selected_by_stocks_industry])
-
-
-
-
-        
-    # elif stocks_filtered_by_sector & stocks_filtered_by_industry:
-    #     stocks_final = pd.concat([stocks_selected_by_stocks_sector, stocks_selected_by_stocks_names])
-
-    # elif stocks_filtered_by_name & stocks_filtered_by_industry:
-    #     stocks_final = pd.concat([stocks_selected_by_stocks_names, stocks_selected_by_stocks_industry]) 
-
-    # elif stocks_filtered_by_name & stocks_selected_by_stocks_sector:
-    #     stocks_final = pd.concat([stocks_selected_by_stocks_names, stocks_selected_by_stocks_sector])
-
-    # elif stocks_filtered_by_sector:
-    #     stocks_final = pd.concat([stocks_selected_by_stocks_sector])
-
-    # elif stocks_filtered_by_industry: 
-    #     stocks_final = pd.concat([stocks_selected_by_stocks_industry])  
-
-    # else:
-    #     stocks_final = pd.concat([stocks_selected_by_stocks_names])
-    
-    # stocks_final = stocks_final.drop_duplicates(subset = ["Symbol"])
-    # stocks_final
-    # return stocks_final
-
-
-
-# # Using the "with" syntax
-# with st.form(key='final_stocks'):
-#     submit_button = st.form_submit_button(label='Select your final stock list')
-#     if submit_button:
-#         stocks_data = stock_concat()
 
 
