@@ -163,7 +163,7 @@ def get_live_data():
 
 import time
 t3 = 0
-period3 = 60.0 # do function3() every minute
+period3 = 60.0 #seconds do function3() every minute
 sleep_seconds = 1   # or whatever makes sense
 
 with st.form(key='final_stocks'):
@@ -176,47 +176,7 @@ with st.form(key='final_stocks'):
                 t3 = time.time()
             time.sleep(sleep_seconds)
         
-     
-# while True:
-#          
-
-# # Using the "with" syntax
-# with st.form(key='final_stocks'):
-#     submit_button = st.form_submit_button(label='Select your final stock list')
-#     if submit_button:
-#         stocks_selected_by_stocks_names = selection_stocks_by_names()
-#         company_names = stocks_selected_by_stocks_names['Company name'].values
-#         company_symbols = stocks_selected_by_stocks_names['Symbol'].values
-#         for name, symbol in zip(company_names, company_symbols):
-#            st.write(name, " | ", symbol)
-#            stocks_final = get_data(symbol)
-        
-
-# schedule.every(10).seconds.do(get_data, symbol)
-# while True:
-#     schedule.run_pending()
-#     time.sleep(1)        
-
-
-# def stocks_with_rsi():
-#     st.header('Final Stocks Selection')
-#     company_names = stocks_selected_by_stocks_names['Company name'].values
-#     company_symbols = stocks_selected_by_stocks_names['Symbol'].values
-#     for name, symbol in zip(company_names, company_symbols):
-#         st.write(name, " | ", symbol)
-#         stocks_final = get_data(symbol)
-#         delta = stocks_final['Close'].diff()
-#         up = delta.clip(lower=0)
-#         down = -1*delta.clip(upper=0)
-#         ema_up = up.ewm(com=13, adjust=False).mean()
-#         ema_down = down.ewm(com=13, adjust=False).mean()
-#         rs = ema_up/ema_down
-#         stocks_final['RSI'] = 100 - (100/(1 + rs))  
-#         stocks_final
-
-#     return stocks_final
-
-
+ 
 
 
 
