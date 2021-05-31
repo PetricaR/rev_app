@@ -1,3 +1,4 @@
+from os import write
 import sys
 from pathlib import Path
 file = Path(__file__).resolve()
@@ -19,13 +20,14 @@ import math
 import yfinance as yf
 import time
 import pandas_ta as ta
+from alpha_vantage.techindicators import TechIndicators
 
 
 
 
 # GET STOCK LIST
 ##################################################################################################################################
-st.sidebar.header('VIEW STOCKS')
+st.sidebar.header('REVOLUT STOCKS SCANNER')
 st.header('REVOLUT STOCKS LIST')
 
 # Market title web page:
@@ -34,72 +36,85 @@ def stock_list():
     stock_list = pd.read_excel('stocks_list.xlsx', sheet_name='stocks_list')        
     return stock_list
 
-# View stocks list
-stocks = stock_list()
-stocks_company_name = stocks['Company name'].unique()
-stocks_symbols = stocks['Symbol'].unique()
-stocks_sector = stocks['Sector'].unique()
-stocks_industry = stocks['Industry'].unique()
 
 ##################################################################################################################################
-# # Selection stocks by company name
+stock_selection_option = ['Company name',
+                          'Company sector',
+                          'Company industry',
+                          'Revolut stocks',
+                          'Personal portfolio']
+
+# Market title web page:
+st.sidebar.subheader('Stock selection')
+stoc_selection_list = st.sidebar.selectbox('Selection mode:', stock_selection_option, key='1')
+
 ##################################################################################################################################
-# checkbox_company_name = st.sidebar.checkbox('Stocks by company name:', key='checkbox_company_name')
-
-
-# def selection_stocks_by_names():
-#     try:
-#         st.text('Stocks selected by name')
-#         if checkbox_company_name:
-#             stocks_filter_by_name = st.sidebar.multiselect('Name:', stocks_company_name)
-#             if stocks_filter_by_name:
-#                 stocks_selected_by_stocks_names = stocks[(stocks['Company name'].isin(stocks_filter_by_name))]
-#             else:
-#                 st.warning('Please select a name')
-#         else:
-#             st.warning('Please select a name')
-#     except UnboundLocalError:
-#         st.warning('Please select a name')
+def stocks_selections():
+    # View stocks list
+    stocks = stock_list()
+    # Filters
+    stocks_company_name = stocks['Company name'].unique()
+    stocks_company_symbol = stocks['Symbol'].unique()
+    stocks_company_sector = stocks['Sector'].unique()
+    stocks_company_industry = stocks['Industry'].unique()
         
-#     return stocks_selected_by_stocks_names
-
-# final_stocks_selection = selection_stocks_by_names()
-##################################################################################################################################
-def selection_stocks_by_names():
-    try:
+    if stoc_selection_list == 'Company name':    
         st.text('Stocks selected by name')
-        stocks_selected_by_stocks_names = stocks[(stocks['Company name'].isin(stocks_filtered_by_name))]
-        stocks_selected_by_stocks_names
-    except:
-        st.warning('Please select a name')
-    return stocks_selected_by_stocks_names
+        stocks_filtered_by_name = st.sidebar.multiselect('Company name:', stocks_company_name)
+        if stocks_filtered_by_name:
+            stocks = stocks[(stocks['Company name'].isin(stocks_filtered_by_name))]
+            stocks
+        
+    elif stoc_selection_list == 'Company sector':    
+        st.text('Stocks selected by sector')
+        stocks_filtered_by_sector = st.sidebar.multiselect('Company sector:', stocks_company_sector)
+        if stocks_filtered_by_sector:
+            stocks = stocks[(stocks['Sector'].isin(stocks_filtered_by_sector))]
+            stocks  
+    
+    elif stoc_selection_list == 'Company industry':    
+        st.text('Stocks selected by industry')
+        stocks_filtered_by_industry = st.sidebar.multiselect('Company industry:', stocks_company_industry)
+        if stocks_filtered_by_industry:
+            stocks = stocks[(stocks['Industry'].isin(stocks_filtered_by_industry))]
+            stocks  
+    
+    elif stoc_selection_list == 'Revolut stocks':    
+        st.text('All Revolut Stocks')
+        if stoc_selection_list:
+            stocks
+    
+    elif stoc_selection_list == 'Personal portfolio':    
+        st.text('Personal portfolio Stocks')        
+            
+            
+    else:
+        st.warning('Please load data')
+        
+    return stocks
 
-##################################################################################################################################
-checkbox_company_name = st.sidebar.checkbox('Stocks by company name:', key='checkbox_company_name')
-if checkbox_company_name:
-    stocks_filtered_by_name = st.sidebar.multiselect('Name:', stocks_company_name)
-    if stocks_filtered_by_name:
-        stocks_selected_by_stocks_names = selection_stocks_by_names()
-          
+stocks_selection = stocks_selections()
+#################################################################################################################################
 
+st.sidebar.subheader('Stock live data')
+#Period selection
+valid_periods = ['1d', '5d', '1mo', '3mo', '6mo', '1y', '2y' , '5y', '10y', 'ytd' , 'max']
+period_selection = st.sidebar.selectbox('Period:', valid_periods, key='period_selection')
 
-# # Download stock data
-##################################################################################################################################
-def get_data(tickers,  *args, **kwargs):
+#Interval selection
+valid_intervals = ['1m', '2m', '5m', '15m', '30m', '60m', '90m', '1h', '1d', '5d' , '1wk', '1mo', '3mo']
+interval_selection = st.sidebar.selectbox('Interval:', valid_intervals, key='interval_selection')
+
+def yahoo_data(tickers,  *args, **kwargs):
     try:
         data = yf.download(tickers,  # or pdr.get_data_yahoo(...
-                # tickers list or string as well
-                # tickers = "PATH",
-
-                # use "period" instead of start/end
-                # valid periods: 1d,5d,1mo,3mo,6mo,1y,2y,5y,10y,ytd,max
-                # (optional, default is '1mo')
-                period = "1d",
+                
+                period = period_selection,
 
                 # fetch data by interval (including intraday if period < 60 days)
                 # valid intervals: 1m,2m,5m,15m,30m,60m,90m,1h,1d,5d,1wk,1mo,3mo
                 # (optional, default is '1d')
-                interval = "15m",
+                interval = interval_selection,
 
                 # group by ticker (to access via data['SPY'])
                 # (optional, default is 'column')
@@ -122,41 +137,40 @@ def get_data(tickers,  *args, **kwargs):
                 proxy = None
             )
         
+        #data['RSI'] = data.ta.rsi()
                      
     except (KeyError, ValueError, UnboundLocalError): 
         st.warning('No stock has been selected')  
-    
         
     return data
 
 
-
-
-def get_live_data():
-    company_names = stocks_selected_by_stocks_names['Company name'].values
-    company_symbols = stocks_selected_by_stocks_names['Symbol'].values
+def rsi_live():
+    company_names = stocks_selection['Company name'].values
+    company_symbols = stocks_selection['Symbol'].values
     for name, symbol in zip(company_names, company_symbols):
         try:
-            stocks_final = get_data(symbol)
-            timestamp = get_data(symbol).index[-1]
-            stocks_final['RSI'] = stocks_final.ta.rsi()
-            # stocks_final
+            stocks = yahoo_data(symbol)
+            stocks['RSI'] = stocks.ta.rsi()
             
-            if stocks_final['RSI'][-1] < 30:
-                stocks_final['recommndation'] = "buy"
-            elif stocks_final['RSI'][-1]  > 70:
-                stocks_final['recommndation'] = "sell"
+            timestamp = yahoo_data(symbol).index[-1]
+            
+            if stocks['RSI'][-1] < 30:
+                stocks['recommndation'] = "buy"
+            elif stocks['RSI'][-1]  > 70:
+                stocks['recommndation'] = "sell"
             else:
-                stocks_final['recommndation'] = "neutral"
+                stocks['recommndation'] = "neutral"
             
-            st.write("|", timestamp, "|", name, "-", symbol,  "|", "Price = ", stocks_final['close'][-1],
-                     "|", "RSI = ", stocks_final['RSI'][-1], "||", stocks_final['recommndation'][-1])
-        
+            st.write("|", timestamp, "|", name, "-", symbol,  "|", "Price = ", stocks['close'][-1],
+                     "|", "RSI = ", stocks['RSI'][-1], "||", stocks['recommndation'][-1])
+                
         except:
             st.write(f'error with stock {name, symbol}')
             continue
         
-    return stocks_final
+        
+    return stocks
 
 
 
@@ -170,11 +184,11 @@ with st.form(key='final_stocks'):
         while True:
             t = time.time()
             if t - t3 >= period3:
-                stock_live_data = get_live_data()
+                stock_live_data = rsi_live()
                 t3 = time.time()
             time.sleep(sleep_seconds)
-        
- 
+
+
 
 
 
