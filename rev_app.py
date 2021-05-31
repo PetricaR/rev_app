@@ -64,25 +64,29 @@ def stocks_selections():
         if stocks_filtered_by_name:
             stocks = stocks[(stocks['Company name'].isin(stocks_filtered_by_name))]
             stocks
+            return stocks
         
     elif stoc_selection_list == 'Company sector':    
         st.text('Stocks selected by sector')
         stocks_filtered_by_sector = st.sidebar.multiselect('Company sector:', stocks_company_sector)
         if stocks_filtered_by_sector:
             stocks = stocks[(stocks['Sector'].isin(stocks_filtered_by_sector))]
-            stocks  
+            stocks 
+            return stocks 
     
     elif stoc_selection_list == 'Company industry':    
         st.text('Stocks selected by industry')
         stocks_filtered_by_industry = st.sidebar.multiselect('Company industry:', stocks_company_industry)
         if stocks_filtered_by_industry:
             stocks = stocks[(stocks['Industry'].isin(stocks_filtered_by_industry))]
-            stocks  
+            stocks
+            return stocks  
     
     elif stoc_selection_list == 'Revolut stocks':    
         st.text('All Revolut Stocks')
         if stoc_selection_list:
             stocks
+            return stocks
     
     elif stoc_selection_list == 'Personal portfolio':    
         st.text('Personal portfolio Stocks')        
