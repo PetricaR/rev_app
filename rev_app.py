@@ -180,18 +180,15 @@ def rsi_live():
             
             stocks_data = yahoo_data(symbol) #Get data
             
+            
             if stocks_data['RSI'][-1] < 50 and stocks_data['RSI'][-1] > 30:
                 stocks_data['recommndation'] = "bearish downtrend"
-                
             elif stocks_data['RSI'][-1] < 30:
                 stocks_data['recommndation'] = "buy - cheap stock"
-            
             elif stocks_data['RSI'][-1] > 50 and stocks_data['RSI'][-1] < 70:
                 stocks_data['recommndation'] = "bullish uptrend"        
-                
             elif stocks_data['RSI'][-1] > 70:
                 stocks_data['recommndation'] = "sell - expensive stock"
-            
             else:
                 stocks_data['recommndation'] = "neutral"
             
