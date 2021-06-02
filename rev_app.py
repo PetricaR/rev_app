@@ -19,6 +19,7 @@ from datetime import datetime, date
 import yfinance as yf
 import time
 import pandas_ta as ta
+import schedule
 
 
 
@@ -35,7 +36,7 @@ def stock_list():
 
 
 ##################################################################################################################################
-st.sidebar.subheader('Stock data')
+st.sidebar.subheader('Stock interval')
 # Period selection
 valid_periods = ['1d', '5d', '1mo', '3mo', '6mo', '1y', '2y' , '5y', '10y', 'ytd' , 'max']
 period_selection = st.sidebar.selectbox('Period:', valid_periods, key='period_selection', index=4)
@@ -171,10 +172,18 @@ def rsi_live():
             timestamp = yahoo_data(symbol).index[-1] #Get timestamp
             
             # Make recommandation
-            if stocks['RSI'][-1] < 30:
-                stocks['recommndation'] = "buy"
-            elif stocks['RSI'][-1]  > 70:
-                stocks['recommndation'] = "sell"
+            if stocks['RSI'][-1] < 50:
+                stocks['recommndation'] = "bearish downtrend"
+                
+            elif stocks['RSI'][-1] < 30:
+                stocks['recommndation'] = "buy - cheap stock"
+            
+            elif stocks['RSI'][-1] > 50:
+                stocks['recommndation'] = "bullish uptrend"        
+                
+            elif stocks['RSI'][-1] > 70:
+                stocks['recommndation'] = "sell - expensive stock"
+            
             else:
                 stocks['recommndation'] = "neutral"
             
@@ -187,8 +196,6 @@ def rsi_live():
                 "|", "MACDh_12_26_9 = " , stocks['MACDh_12_26_9'][-1],
                 "|", "MACDs_12_26_9 = " , stocks['MACDs_12_26_9'][-1],
                 "|", "Stock recommandation => ", stocks['recommndation'][-1], "||")
-                    
-            
                 
         except:
             st.write(f'error with stock {name, symbol}')
@@ -197,23 +204,15 @@ def rsi_live():
         
     return stocks
 
-
-
-t3 = 0
-period3 = 60 #seconds do function3() every minute
-sleep_seconds = 1   # or whatever makes sense
-
 with st.form(key='final_stocks'):
     stock_data_button = st.form_submit_button(label='Get stocks data')
     if stock_data_button:
+        schedule.every(1).minutes.do(rsi_live)
         while True:
-            t = time.time()
-            if t - t3 >= period3:
-                stock_live_data = rsi_live()
-                t3 = time.time()
-            time.sleep(sleep_seconds)
-
+            schedule.run_pending()
+            time.sleep(1)
         
+
         
 
 
