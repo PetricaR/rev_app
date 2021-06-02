@@ -206,8 +206,14 @@ def rsi_live():
 
 with st.form(key='final_stocks'):
     stock_data_button = st.form_submit_button(label='Get stocks data')
+    schedule_time = st.sidebar.number_input(label="Schedule time",
+                                            min_value=1,
+                                            max_value=3600,
+                                            step=1,
+                                            value=15,
+                                            )
     if stock_data_button:
-        schedule.every(1).minutes.do(rsi_live)
+        schedule.every(schedule_time).minutes.do(rsi_live)
         while True:
             schedule.run_pending()
             time.sleep(1)
