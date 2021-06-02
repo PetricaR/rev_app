@@ -173,13 +173,13 @@ def rsi_live():
             # timestamp = yahoo_data(symbol).index[-1] #Get timestamp
             
             # Make recommandation
-            if stocks['RSI'][-1] < 50:
+            if stocks['RSI'][-1] < 50 and stocks['RSI'][-1] > 30:
                 stocks['recommndation'] = "bearish downtrend"
                 
             elif stocks['RSI'][-1] < 30:
                 stocks['recommndation'] = "buy - cheap stock"
             
-            elif stocks['RSI'][-1] > 50:
+            elif stocks['RSI'][-1] > 50 and stocks['RSI'][-1] < 70:
                 stocks['recommndation'] = "bullish uptrend"        
                 
             elif stocks['RSI'][-1] > 70:
