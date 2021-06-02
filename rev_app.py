@@ -159,8 +159,11 @@ def yahoo_data(tickers,  *args, **kwargs):
             )
         
         data['RSI'] = data.ta.rsi() # Calculate RSI
+        data['SMA'] = data.ta.sma()
         data[['MACD_12_26_9', 'MACDh_12_26_9', 'MACDs_12_26_9']] = data.ta.macd(inplace=True)
         data['timestamp'] = data.index[-1]   #Get timestamp
+       
+       
                      
     except (KeyError, ValueError, UnboundLocalError): 
         st.warning('No stock has been selected')  
@@ -175,45 +178,37 @@ def rsi_live():
     for name, symbol in zip(company_names, company_symbols):
         try:
             
-            stocks = yahoo_data(symbol) #Get data
-            # stocks['RSI'] = stocks.ta.rsi() # Calculate RSI
-            # stocks[['MACD_12_26_9', 'MACDh_12_26_9', 'MACDs_12_26_9']] = stocks.ta.macd(inplace=True)
-            # timestamp = yahoo_data(symbol).index[-1] #Get timestamp
+            stocks_data = yahoo_data(symbol) #Get data
             
-            # Make recommandation
-            if stocks['RSI'][-1] < 50 and stocks['RSI'][-1] > 30:
-                stocks['recommndation'] = "bearish downtrend"
-                
-            elif stocks['RSI'][-1] < 30:
-                stocks['recommndation'] = "buy - cheap stock"
             
-            elif stocks['RSI'][-1] > 50 and stocks['RSI'][-1] < 70:
-                stocks['recommndation'] = "bullish uptrend"        
-                
-            elif stocks['RSI'][-1] > 70:
-                stocks['recommndation'] = "sell - expensive stock"
-            
+            if stocks_data['RSI'][-1] < 50 and stocks_data['RSI'][-1] > 30:
+                stocks_data['recommndation'] = "bearish downtrend"
+            elif stocks_data['RSI'][-1] < 30:
+                stocks_data['recommndation'] = "buy - cheap stock"
+            elif stocks_data['RSI'][-1] > 50 and stocks_data['RSI'][-1] < 70:
+                stocks_data['recommndation'] = "bullish uptrend"        
+            elif stocks_data['RSI'][-1] > 70:
+                stocks_data['recommndation'] = "sell - expensive stock"
             else:
-                stocks['recommndation'] = "neutral"
+                stocks_data['recommndation'] = "neutral"
             
             
             # Write recommandation
             results = st.write(
-                "|", stocks['timestamp'][-1], "|", name, "-", symbol,
-                "|", "Price = ", stocks['close'][-1],
-                "|", "RSI = ", stocks['RSI'][-1], 
-                "|", "MACD_12_26_9 = " , stocks['MACD_12_26_9'][-1],
-                "|", "MACDh_12_26_9 = " , stocks['MACDh_12_26_9'][-1],
-                "|", "MACDs_12_26_9 = " , stocks['MACDs_12_26_9'][-1],
-                "|", "Stock recommandation => ", stocks['recommndation'][-1])
+                "|", stocks_data['timestamp'][-1], "|", name, "-", symbol,
+                "|", "Price = ", stocks_data['close'][-1],
+                "|", "RSI = ", stocks_data['RSI'][-1], 
+                "|", "MACD_12_26_9 = " , stocks_data['MACD_12_26_9'][-1],
+                "|", "MACDh_12_26_9 = " , stocks_data['MACDh_12_26_9'][-1],
+                "|", "MACDs_12_26_9 = " , stocks_data['MACDs_12_26_9'][-1],
+                "|", "Stock recommandation => ", stocks_data['recommndation'][-1])
                 
         except:
             st.write(f'error with stock {name, symbol}')
             continue
-        
-        
     return results
 
+##################################################################################################################################
 with st.form(key='final_stocks'):
     stock_data_button = st.form_submit_button(label='Get stocks data')
     if stock_data_button:
