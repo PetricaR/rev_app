@@ -5,3 +5,4 @@ yfinance
 schedule
 xlrd
 openpyxl
+pandas_ta
