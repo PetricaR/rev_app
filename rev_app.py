@@ -41,9 +41,17 @@ st.sidebar.subheader('Stock interval')
 valid_periods = ['1d', '5d', '1mo', '3mo', '6mo', '1y', '2y' , '5y', '10y', 'ytd' , 'max']
 period_selection = st.sidebar.selectbox('Period:', valid_periods, key='period_selection', index=4)
 
-#Interval selection
+# Interval selection
 valid_intervals = ['1m', '2m', '5m', '15m', '30m', '60m', '90m', '1h', '1d', '5d' , '1wk', '1mo', '3mo']
 interval_selection = st.sidebar.selectbox('Interval:', valid_intervals, key='interval_selection', index=8)
+
+# Schedule time:
+schedule_time = st.sidebar.number_input(label="Schedule time:",
+                                        min_value=1,
+                                        max_value=3600,
+                                        step=1,
+                                        value=5,
+                                        )
 ##################################################################################################################################
 
 ##################################################################################################################################
@@ -107,7 +115,7 @@ def stocks_selections():
         
     return stocks
 
-stocks_selection = stocks_selections()
+stocks_list = stocks_selections()
 #################################################################################################################################
 
 #Tehnical indicators
@@ -162,8 +170,8 @@ def yahoo_data(tickers,  *args, **kwargs):
 
 ##################################################################################################################################
 def rsi_live():
-    company_names = stocks_selection['Company name'].values
-    company_symbols = stocks_selection['Symbol'].values
+    company_names = stocks_list['Company name'].values
+    company_symbols = stocks_list['Symbol'].values
     for name, symbol in zip(company_names, company_symbols):
         try:
             
@@ -188,36 +196,33 @@ def rsi_live():
             else:
                 stocks['recommndation'] = "neutral"
             
+            
             # Write recommandation
-            st.write(
+            results = st.write(
                 "|", stocks['timestamp'][-1], "|", name, "-", symbol,
                 "|", "Price = ", stocks['close'][-1],
                 "|", "RSI = ", stocks['RSI'][-1], 
                 "|", "MACD_12_26_9 = " , stocks['MACD_12_26_9'][-1],
                 "|", "MACDh_12_26_9 = " , stocks['MACDh_12_26_9'][-1],
                 "|", "MACDs_12_26_9 = " , stocks['MACDs_12_26_9'][-1],
-                "|", "Stock recommandation => ", stocks['recommndation'][-1], "||")
+                "|", "Stock recommandation => ", stocks['recommndation'][-1])
                 
         except:
             st.write(f'error with stock {name, symbol}')
             continue
         
         
-    return stocks
+    return results
 
 with st.form(key='final_stocks'):
     stock_data_button = st.form_submit_button(label='Get stocks data')
-    schedule_time = st.sidebar.number_input(label="Schedule time",
-                                            min_value=1,
-                                            max_value=3600,
-                                            step=1,
-                                            value=15,
-                                            )
     if stock_data_button:
         schedule.every(schedule_time).minutes.do(rsi_live)
         while True:
             schedule.run_pending()
             time.sleep(1)
+    else:
+        st.stop()
         
 
         
