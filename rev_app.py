@@ -16,12 +16,9 @@ import numpy as np
 import streamlit as st
 from streamlit import dataframe, stop
 from datetime import datetime, date
-import math
 import yfinance as yf
 import time
 import pandas_ta as ta
-from alpha_vantage.techindicators import TechIndicators
-
 
 
 
@@ -114,9 +111,9 @@ stocks_selection = stocks_selections()
 
 #Tehnical indicators
 ##################################################################################################################################
-st.sidebar.subheader('Tehnical indicators')
-indicators = ['RSI', 'MACD']
-tehnical_indicators = st.sidebar.multiselect('Interval:', indicators, key='tehnical_indicators')
+# st.sidebar.subheader('Tehnical indicators')
+# indicators = ['RSI', 'MACD']
+# tehnical_indicators = st.sidebar.multiselect('Interval:', indicators, key='tehnical_indicators')
 
 # Download yahoo data
 ##################################################################################################################################
@@ -169,6 +166,8 @@ def rsi_live():
             
             stocks = yahoo_data(symbol) #Get data
             stocks['RSI'] = stocks.ta.rsi() # Calculate RSI
+            stocks[['MACD_12_26_9', 'MACDh_12_26_9', 'MACDs_12_26_9']] = stocks.ta.macd(inplace=True)
+
             timestamp = yahoo_data(symbol).index[-1] #Get timestamp
             
             # Make recommandation
@@ -180,8 +179,16 @@ def rsi_live():
                 stocks['recommndation'] = "neutral"
             
             # Write recommandation
-            st.write("|", timestamp, "|", name, "-", symbol,  "|", "Price = ", stocks['close'][-1],
-                     "|", "RSI = ", stocks['RSI'][-1], "||", stocks['recommndation'][-1])
+            st.write(
+                "|", timestamp, "|", name, "-", symbol,
+                "|", "Price = ", stocks['close'][-1],
+                "|", "RSI = ", stocks['RSI'][-1], 
+                "|", "MACD_12_26_9 = " , stocks['MACD_12_26_9'][-1],
+                "|", "MACDh_12_26_9 = " , stocks['MACDh_12_26_9'][-1],
+                "|", "MACDs_12_26_9 = " , stocks['MACDs_12_26_9'][-1],
+                "|", "Stock recommandation => ", stocks['recommndation'][-1], "||")
+                    
+            
                 
         except:
             st.write(f'error with stock {name, symbol}')
@@ -197,14 +204,17 @@ period3 = 60 #seconds do function3() every minute
 sleep_seconds = 1   # or whatever makes sense
 
 with st.form(key='final_stocks'):
-    submit_button = st.form_submit_button(label='Get stocks data')
-    if submit_button:
+    stock_data_button = st.form_submit_button(label='Get stocks data')
+    if stock_data_button:
         while True:
             t = time.time()
             if t - t3 >= period3:
                 stock_live_data = rsi_live()
                 t3 = time.time()
             time.sleep(sleep_seconds)
+
+        
+        
 
 
 
