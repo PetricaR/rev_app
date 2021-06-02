@@ -38,15 +38,27 @@ def stock_list():
 
 
 ##################################################################################################################################
+st.sidebar.subheader('Stock data')
+# Period selection
+valid_periods = ['1d', '5d', '1mo', '3mo', '6mo', '1y', '2y' , '5y', '10y', 'ytd' , 'max']
+period_selection = st.sidebar.selectbox('Period:', valid_periods, key='period_selection', index=4)
+
+#Interval selection
+valid_intervals = ['1m', '2m', '5m', '15m', '30m', '60m', '90m', '1h', '1d', '5d' , '1wk', '1mo', '3mo']
+interval_selection = st.sidebar.selectbox('Interval:', valid_intervals, key='interval_selection', index=8)
+##################################################################################################################################
+
+##################################################################################################################################
+st.sidebar.subheader('Stock selection')
+# Stock selection
 stock_selection_option = ['Company name',
                           'Company sector',
                           'Company industry',
                           'Revolut stocks',
                           'Personal portfolio']
 
-# Market title web page:
-st.sidebar.subheader('Stock selection')
 stoc_selection_list = st.sidebar.selectbox('Selection mode:', stock_selection_option, key='1')
+##################################################################################################################################
 
 ##################################################################################################################################
 def stocks_selections():
@@ -100,15 +112,14 @@ def stocks_selections():
 stocks_selection = stocks_selections()
 #################################################################################################################################
 
-st.sidebar.subheader('Stock live data')
-#Period selection
-valid_periods = ['1d', '5d', '1mo', '3mo', '6mo', '1y', '2y' , '5y', '10y', 'ytd' , 'max']
-period_selection = st.sidebar.selectbox('Period:', valid_periods, key='period_selection')
+#Tehnical indicators
+##################################################################################################################################
+st.sidebar.subheader('Tehnical indicators')
+indicators = ['RSI', 'MACD']
+tehnical_indicators = st.sidebar.multiselect('Interval:', indicators, key='tehnical_indicators')
 
-#Interval selection
-valid_intervals = ['1m', '2m', '5m', '15m', '30m', '60m', '90m', '1h', '1d', '5d' , '1wk', '1mo', '3mo']
-interval_selection = st.sidebar.selectbox('Interval:', valid_intervals, key='interval_selection')
-
+# Download yahoo data
+##################################################################################################################################
 def yahoo_data(tickers,  *args, **kwargs):
     try:
         data = yf.download(tickers,  # or pdr.get_data_yahoo(...
@@ -149,16 +160,18 @@ def yahoo_data(tickers,  *args, **kwargs):
     return data
 
 
+##################################################################################################################################
 def rsi_live():
     company_names = stocks_selection['Company name'].values
     company_symbols = stocks_selection['Symbol'].values
     for name, symbol in zip(company_names, company_symbols):
         try:
-            stocks = yahoo_data(symbol)
-            stocks['RSI'] = stocks.ta.rsi()
             
-            timestamp = yahoo_data(symbol).index[-1]
+            stocks = yahoo_data(symbol) #Get data
+            stocks['RSI'] = stocks.ta.rsi() # Calculate RSI
+            timestamp = yahoo_data(symbol).index[-1] #Get timestamp
             
+            # Make recommandation
             if stocks['RSI'][-1] < 30:
                 stocks['recommndation'] = "buy"
             elif stocks['RSI'][-1]  > 70:
@@ -166,6 +179,7 @@ def rsi_live():
             else:
                 stocks['recommndation'] = "neutral"
             
+            # Write recommandation
             st.write("|", timestamp, "|", name, "-", symbol,  "|", "Price = ", stocks['close'][-1],
                      "|", "RSI = ", stocks['RSI'][-1], "||", stocks['recommndation'][-1])
                 
@@ -183,7 +197,7 @@ period3 = 60 #seconds do function3() every minute
 sleep_seconds = 1   # or whatever makes sense
 
 with st.form(key='final_stocks'):
-    submit_button = st.form_submit_button(label='Select your final stock list')
+    submit_button = st.form_submit_button(label='Get stocks data')
     if submit_button:
         while True:
             t = time.time()
