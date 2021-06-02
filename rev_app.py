@@ -150,7 +150,9 @@ def yahoo_data(tickers,  *args, **kwargs):
                 proxy = None
             )
         
-        #data['RSI'] = data.ta.rsi()
+        data['RSI'] = data.ta.rsi() # Calculate RSI
+        data[['MACD_12_26_9', 'MACDh_12_26_9', 'MACDs_12_26_9']] = data.ta.macd(inplace=True)
+        data['timestamp'] = data.index[-1]   #Get timestamp
                      
     except (KeyError, ValueError, UnboundLocalError): 
         st.warning('No stock has been selected')  
@@ -166,10 +168,9 @@ def rsi_live():
         try:
             
             stocks = yahoo_data(symbol) #Get data
-            stocks['RSI'] = stocks.ta.rsi() # Calculate RSI
-            stocks[['MACD_12_26_9', 'MACDh_12_26_9', 'MACDs_12_26_9']] = stocks.ta.macd(inplace=True)
-
-            timestamp = yahoo_data(symbol).index[-1] #Get timestamp
+            # stocks['RSI'] = stocks.ta.rsi() # Calculate RSI
+            # stocks[['MACD_12_26_9', 'MACDh_12_26_9', 'MACDs_12_26_9']] = stocks.ta.macd(inplace=True)
+            # timestamp = yahoo_data(symbol).index[-1] #Get timestamp
             
             # Make recommandation
             if stocks['RSI'][-1] < 50:
@@ -189,7 +190,7 @@ def rsi_live():
             
             # Write recommandation
             st.write(
-                "|", timestamp, "|", name, "-", symbol,
+                "|", stocks['timestamp'][-1], "|", name, "-", symbol,
                 "|", "Price = ", stocks['close'][-1],
                 "|", "RSI = ", stocks['RSI'][-1], 
                 "|", "MACD_12_26_9 = " , stocks['MACD_12_26_9'][-1],
