@@ -30,12 +30,9 @@ st.header('REVOLUT STOCKS LIST')
 
 # Market title web page:
 # @st.cache(allow_output_mutation=True)
-def stock_list():
-    stock_list = pd.read_excel('stocks_list.xlsx', sheet_name='stocks_list')
-    stock_list
-    
-    return stock_list
-
+def stock_list_excel():
+    stock_list_excel = pd.read_excel('stocks_list.xlsx', sheet_name='stocks_list')
+    return stock_list_excel
 
 ##################################################################################################################################
 st.sidebar.subheader('Stock interval')
@@ -52,79 +49,43 @@ schedule_time = st.sidebar.number_input(label="Schedule time:",
                                         min_value=1,
                                         max_value=3600,
                                         step=1,
-                                        value=5,
+                                        value=1,
                                         )
 ##################################################################################################################################
 
 ##################################################################################################################################
-# st.sidebar.subheader('Stock selection')
+st.sidebar.subheader('Stock selection')
+
+
 # # Stock selection
-# stock_selection_option = ['Company name',
-#                           'Company sector',
-#                           'Company industry',
-#                           'Revolut stocks',
-#                           'Personal portfolio']
+stoc_selection_list = st.sidebar.radio('Selection mode:', options=("Revolut stocks", "Personal portfolio"), index=0)
 
-# stoc_selection_list = st.sidebar.selectbox('Selection mode:', stock_selection_option, key='1')
-##################################################################################################################################
+def stock_select_mode():
+    stocks_sellection = stock_list_excel()
+    if stoc_selection_list=="Revolut stocks":    
+        stocks_final = stocks_sellection.copy()
+        stocks_final
+        return stocks_final
 
-##################################################################################################################################
-# def stocks_selections():
-#     # View stocks list
-#     stocks = stock_list()
-#     # Filters
-#     stocks_company_name = stocks['Company name'].unique()
-#     stocks_company_symbol = stocks['Symbol'].unique()
-#     stocks_company_sector = stocks['Sector'].unique()
-#     stocks_company_industry = stocks['Industry'].unique()
-        
-#     if stoc_selection_list == 'Company name':    
-#         st.text('Stocks selected by name')
-#         stocks_filtered_by_name = st.sidebar.multiselect('Company name:', stocks_company_name)
-#         if stocks_filtered_by_name:
-#             stocks = stocks[(stocks['Company name'].isin(stocks_filtered_by_name))]
-#             stocks
-#             return stocks
-        
-#     elif stoc_selection_list == 'Company sector':    
-#         st.text('Stocks selected by sector')
-#         stocks_filtered_by_sector = st.sidebar.multiselect('Company sector:', stocks_company_sector)
-#         if stocks_filtered_by_sector:
-#             stocks = stocks[(stocks['Sector'].isin(stocks_filtered_by_sector))]
-#             stocks 
-#             return stocks 
-    
-#     elif stoc_selection_list == 'Company industry':    
-#         st.text('Stocks selected by industry')
-#         stocks_filtered_by_industry = st.sidebar.multiselect('Company industry:', stocks_company_industry)
-#         if stocks_filtered_by_industry:
-#             stocks = stocks[(stocks['Industry'].isin(stocks_filtered_by_industry))]
-#             stocks
-#             return stocks  
-    
-#     elif stoc_selection_list == 'Revolut stocks':    
-#         st.text('All Revolut Stocks')
-#         if stoc_selection_list:
-#             stocks
-#             return stocks
-    
-#     elif stoc_selection_list == 'Personal portfolio':    
-#         st.text('Personal portfolio Stocks')        
+    elif stoc_selection_list=="Personal portfolio" :
+        st.text('Stocks selected by name')
+        stocks_company_name = stocks_sellection['Company name'].unique()
+        stocks_filtered_by_name = st.multiselect('Company name:', stocks_company_name)
+        if stocks_filtered_by_name:
+            stocks_final = stocks_sellection[(stocks_sellection['Company name'].isin(stocks_filtered_by_name))]
+            stocks_final
+            return stocks_final
+        else:
             
+            st.warning('Please select a stock')
             
-#     else:
-#         st.warning('Please load data')
         
-#     return stocks
+        
+    
 
-stocks_list = stock_list()
-#################################################################################################################################
+stocks_final = stock_select_mode()
 
-#Tehnical indicators
-##################################################################################################################################
-# st.sidebar.subheader('Tehnical indicators')
-# indicators = ['RSI', 'MACD']
-# tehnical_indicators = st.sidebar.multiselect('Interval:', indicators, key='tehnical_indicators')
+
 
 # Download yahoo data
 ##################################################################################################################################
@@ -164,9 +125,7 @@ def yahoo_data(tickers,  *args, **kwargs):
         data['SMA'] = data.ta.sma()
         data[['MACD_12_26_9', 'MACDh_12_26_9', 'MACDs_12_26_9']] = data.ta.macd(inplace=True)
         data['timestamp'] = data.index[-1]   #Get timestamp
-       
-       
-                     
+                
     except (KeyError, ValueError, UnboundLocalError): 
         st.warning('No stock has been selected')  
         
@@ -175,12 +134,12 @@ def yahoo_data(tickers,  *args, **kwargs):
 
 ##################################################################################################################################
 def rsi_live():
-    company_names = stocks_list['Company name'].values
-    company_symbols = stocks_list['Symbol'].values
+    company_names = stocks_final['Company name'].values
+    company_symbols = stocks_final['Symbol'].values
     for name, symbol in zip(company_names, company_symbols):
         try: 
             stocks_data = yahoo_data(symbol) #Get data
-            
+
             if stocks_data['RSI'][-1] < 50 and stocks_data['RSI'][-1] > 30:
                 stocks_data['recommndation'] = "bearish downtrend"
             elif stocks_data['RSI'][-1] < 30:
@@ -202,10 +161,12 @@ def rsi_live():
                 "|", "MACDh_12_26_9 = " , stocks_data['MACDh_12_26_9'][-1],
                 "|", "MACDs_12_26_9 = " , stocks_data['MACDs_12_26_9'][-1],
                 "|", "Stock recommandation => ", stocks_data['recommndation'][-1])
+ 
                 
         except:
             st.write(f'error with stock {name, symbol}')
             continue
+
     return results
 
 ##################################################################################################################################
