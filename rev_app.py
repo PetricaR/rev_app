@@ -143,7 +143,6 @@ def rsi_live():
     company_symbols = stocks_final['Symbol'].values
     for name, symbol in zip(company_names, company_symbols):
     
-    
         try: 
             stocks_data = yahoo_data(symbol).iloc[-1:].style.applymap(color_negative_red, subset=['RSI']) #Get data
             stocks_data
@@ -171,7 +170,9 @@ def rsi_live():
             #     "|", "MACDs_12_26_9 = " , stocks_data['MACDs_12_26_9'][-1],
             #     "|", "Stock recommandation => ", stocks_data['recommndation'][-1])
  
-            
+            if symbol == 'ZTS':
+                st.write('The End')
+                break
                 
         except:
             st.write(f'error with stock {name, symbol}')
