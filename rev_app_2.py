@@ -76,13 +76,13 @@ def stock_select_mode():
         stocks_filtered_by_name = st.multiselect('Company name:', stocks_company_name)
         if stocks_filtered_by_name:
             stocks_final = stocks_sellection[(stocks_sellection['Company name'].isin(stocks_filtered_by_name))]
-            stocks_final
+            stocks_final['Symbol'].to_list()
             return stocks_final
         else:
             
             st.warning('Please select a stock')
             
-stocks_final = stock_select_mode()['Symbol'].to_list()
+stocks_final = stock_select_mode()
 
 # Download yahoo data
 ##################################################################################################################################
