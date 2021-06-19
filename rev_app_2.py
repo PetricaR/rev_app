@@ -82,15 +82,13 @@ def stock_select_mode():
             
             st.warning('Please select a stock')
             
-stocks_final = stock_select_mode()
-
-
+stocks_final = stock_select_mode()['Symbol'].to_list()
 
 # Download yahoo data
 ##################################################################################################################################
-def yahoo_data(tickers,  *args, **kwargs):
+def yahoo_data(stocks_final,  *args, **kwargs):
     try:
-        data = yf.download(tickers,  # or pdr.get_data_yahoo(...
+        data = yf.download(stocks_final,  # or pdr.get_data_yahoo(...
                 
                 period = period_selection,
 
@@ -119,57 +117,60 @@ def yahoo_data(tickers,  *args, **kwargs):
                 # (optional, default is None)
                 proxy = None
             )
-        data['Symbol'] = tickers
-        data['RSI'] = data.ta.rsi(inplace=True) # Calculate RSI
-        data['SMA'] = data.ta.sma(inplace=True)
-        data[['MACD_12_26_9', 'MACDh_12_26_9', 'MACDs_12_26_9']] = data.ta.macd(inplace=True)
-        #data['timestamp'] = data.index[-1]   #Get timestamp
+    
                 
     except (KeyError, ValueError, UnboundLocalError): 
         st.warning('No stock has been selected')  
         
     return data
 
-def color_negative_red(val):
-    color = 'red' if val < 30 else 'green'
-    return 'color: %s' % color
-
-
-
-##################################################################################################################################
-def rsi_live():
-    company_names = stocks_final['Company name'].values
-    company_symbols = stocks_final['Symbol'].values
-    for name, symbol in zip(company_names, company_symbols):
-    
-        try: 
-            stocks_data = yahoo_data(symbol).iloc[-1:].style.applymap(color_negative_red, subset=['RSI']) #Get data
-            st.table(stocks_data)
-            
-            if symbol == 'ZTS':
-                st.write('The End')
-                break
-                
-        except:
-            st.write(f'error with stock {name, symbol}')
-            continue
-        
-        #st.write('The End')
-        #st.stop()
-        
-    return stocks_data
-
-##################################################################################################################################
+# DOWNLOAD DATA
 with st.form(key='final_stocks'):
-   
     stock_data_button = st.form_submit_button(label='Get stocks data')
     if stock_data_button:
-        schedule.every(schedule_time).minutes.do(rsi_live)
-        while True:
-            schedule.run_pending()
-            time.sleep(1)
-        else:
-            st.stop()
+        data = yahoo_data(stocks_final)
+        for stock in stocks_final:
+            #st.write(stocks_final)
+            data[f'RSI_{stock}'] = data[stock].ta.rsi(inplace=True)
+        
+        data = data.filter(like='RSI').iloc[-1:].T
+        st.dataframe(data)
+        
+
+
+
+
+# def color_negative_red(val):
+#     color = 'red' if val < 30 else 'green'
+#     return 'color: %s' % color
+
+
+
+# ##################################################################################################################################
+# def rsi_live():
+#     company_names = stocks_final['Company name'].values
+#     company_symbols = stocks_final['Symbol'].values
+#     for name, symbol in zip(company_names, company_symbols):
+    
+#         try: 
+#             stocks_data = yahoo_data(symbol).iloc[-1:].style.applymap(color_negative_red, subset=['RSI']) #Get data
+#             st.table(stocks_data)
+            
+#             if symbol == 'ZTS':
+#                 st.write('The End')
+#                 break
+                
+#         except:
+#             st.write(f'error with stock {name, symbol}')
+#             continue
+        
+#         #st.write('The End')
+#         #st.stop()
+        
+#     return stocks_data
+
+# ##################################################################################################################################
+
             
 
         
