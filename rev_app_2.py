@@ -22,7 +22,7 @@ import yfinance as yf
 import time
 import pandas_ta as ta
 import schedule
-
+st.set_page_config(layout="wide")
 
 
 # GET STOCK LIST
@@ -84,9 +84,10 @@ def stock_select_mode():
             
 stocks_final = stock_select_mode()
 
+
 # Download yahoo data
 ##################################################################################################################################
-def yahoo_data(stocks_final,  *args, **kwargs):
+def yahoo_data(stocks_final: list):
     try:
         data = yf.download(stocks_final,  # or pdr.get_data_yahoo(...
                 
@@ -128,13 +129,13 @@ def yahoo_data(stocks_final,  *args, **kwargs):
 with st.form(key='final_stocks'):
     stock_data_button = st.form_submit_button(label='Get stocks data')
     if stock_data_button:
-        data = yahoo_data(stocks_final)
-        for stock in stocks_final:
-            #st.write(stocks_final)
-            data[f'RSI_{stock}'] = data[stock].ta.rsi(inplace=True)
+        st.write()
+        # data = yahoo_data(stocks_final)
+        # for stock in stocks_final:
+        #     data[f'RSI_{stock}'] = data[stock].ta.rsi(inplace=True)
         
-        data = data.filter(like='RSI').iloc[-1:].T
-        st.dataframe(data)
+        # data = data.filter(like='RSI').iloc[-1:].T
+        # st.dataframe(data)
         
 
 
