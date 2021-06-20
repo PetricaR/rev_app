@@ -22,7 +22,8 @@ import yfinance as yf
 import time
 import pandas_ta as ta
 import schedule
-
+st.set_page_config(layout="wide")
+pd.set_option('mode.chained_assignment', None)
 
 
 # GET STOCK LIST
@@ -78,8 +79,7 @@ def stock_select_mode():
             stocks_final = stocks_sellection[(stocks_sellection['Company name'].isin(stocks_filtered_by_name))]
             stocks_final
             return stocks_final
-        else:
-            
+        else:   
             st.warning('Please select a stock')
             
 stocks_final = stock_select_mode()['Symbol'].to_list()
@@ -130,7 +130,6 @@ with st.form(key='final_stocks'):
     if stock_data_button:
         data = yahoo_data(stocks_final)
         for stock in stocks_final:
-            #st.write(stocks_final)
             data[f'RSI_{stock}'] = data[stock].ta.rsi(inplace=True)
         
         data = data.filter(like='RSI').iloc[-1:].T
