@@ -81,6 +81,8 @@ def stock_select_mode():
             return stocks_final
         else:   
             st.warning('Please select a stock')
+    else:
+        st.warning('Please select a stock')
             
 stocks_final = stock_select_mode()['Symbol'].to_list()
 
